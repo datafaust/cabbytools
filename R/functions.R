@@ -203,7 +203,7 @@ get_trips_days = function(){
                
                #loop is written out for you
                my_result = 
-               seq.Date(),as.Date(),by = 'days') %>%
+               seq.Date(as.Date(),as.Date(),by = 'days') %>%
                pbapply::pblapply(function(x){
                #enter your directory again in case of outputting cache somewhere else
                setwd(dirs$fhv)
@@ -262,4 +262,62 @@ get_trips_months = function(){
                ")
   clipr::write_clip(code)
   message("Code ready to paste")}
+
+
+
+
+#' Quickly pull up text pipeline for using fst database with daily data in parallel
+#'
+#' This function allows you quickly access the pipeline necesarry to pull daily trip files through the fst database in parallel.
+#' @param cl the number of cores you want
+#' @keywords get
+#' @export
+#' @examples
+#' get_trips_days_p()
+get_trips_days_p = function(){
+  code = print("
+#enter your libraries
+libs = c('data.table','parallel','RODBC', 'lubridate'
+               , 'fasttime', 'pbapply', 'dplyr', 'parallel'
+               ,'zoo','fst')
+               lapply(libs, require, character.only = T)
+               
+               #all the directories of importance
+               dirs = list(
+               med = 'I:/COF/COF/_M3trics2/records/med',
+               shl = 'I:/COF/COF/_M3trics2/records/shl',
+               fhv = 'I:/COF/COF/_M3trics2/records/fhv',
+               share = 'I:/COF/COF/_M3trics2/records/fhv_share')
+               
+               #cluster setup
+               cl = makeCluster() #enter the number of clusters you want to use, run detectCores()-1 for recommended cores 
+               clusterExport(cl,c('libs','dirs')) #enter the vectors to export, you'll want to add any other vectors
+               clusterEvalQ(cl, lapply(libs, require, character.only = T)) #export your libraries to each core
+               
+               #enter your directory, default is fhv
+               setwd(dirs$fhv)
+               
+               #loop is written out for you
+               my_result = 
+               seq.Date(as.Date(),as.Date(),by = 'days') %>%
+               pbapply::pblapply(function(x){
+               #enter your directory again in case of outputting cache somewhere else
+               setwd(dirs$fhv)
+               fst::read.fst(list.files(as.character(x), as.data.table = T)) %>%
+               #begin filtering and dplyr functions below
+               
+               
+               },cl = cl #assigns cluster for parallelization
+               ) %>% rbindlist()
+               
+               stopCluster(cl) #kill the cluster
+               rm(cl) #remove it
+               gc() #clear memory
+               
+")
+  clipr::write_clip(code)
+  message("Code ready to paste")
+}
+
+
 
