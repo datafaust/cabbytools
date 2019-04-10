@@ -7,4 +7,4 @@ Cabbytools allows the user to load pre-prepared text statements that act as pipe
 The user is able to access that data and run code rapidly using dplyr or data.table to run quick counts on a custom numnber of days, months or weeks. In addition to quick access, parallelization features are added to allow the user to run jobs in parallel across these different files in a custom manner and cut down reporting speed by 4X or more.
 
 # How to use
-Currently the main two functions to leverage are ```get_trips_days```
+Currently the main two functions to leverage are ```get_trips_days()``` and ```get_trips_months().``` Simply call the function in your script. When you run it as is you will see a message that says ```Code ready to paste``` as which point you can run CTRL + V or CMD + V to paste the code into your script. At this point you will have access to the basic script to get you started. More to come . . .  
