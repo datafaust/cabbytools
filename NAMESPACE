@@ -2,4 +2,9 @@
 
 export(get_trips)
 export(get_trips_days)
+export(get_trips_days_p)
 export(get_trips_months)
+export(spatial_join)
+import(data.table)
+import(rgdal)
+import(sp)

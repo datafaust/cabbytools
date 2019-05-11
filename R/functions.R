@@ -36,8 +36,8 @@ get_trips = function(service
                      ,left_key = NULL
                      ,right_key = NULL
                      ,join_type = NULL) {
-  
-  
+
+
   #all possible directories
   fun_dirs = list(
     med = "I:/COF/COF/_M3trics2/records/med",
@@ -45,20 +45,20 @@ get_trips = function(service
     fhv = "I:/COF/COF/_M3trics2/records/fhv",
     share = "I:/COF/COF/_M3trics2/records/fhv_share"
   )
-  
+
   #check parameters and logic, spit errors
   if(is.null(service)) { stop("please enter a type of service: med,fhv,shl")}
   if(is.null(odbc_con) & merge_ent ==T) { stop("please enter an RODBC connection")}
   if(is.null(query) & merge_ent ==T) { stop("please enter a query")}
   if(is.null(dt_start)) { dt_start = as.Date("2015-01-01")}
   if(is.null(dt_end)) { dt_end = as.Date("2015-01-03")}
-  #features are tested later in script 
-  
+  #features are tested later in script
+
   #create date seq
-  dates = seq.Date(as.Date(dt_start), as.Date(dt_end), by = "days", features = T) 
-  
+  dates = seq.Date(as.Date(dt_start), as.Date(dt_end), by = "days", features = T)
+
   if(merge_ent == T & service != "share") {
-    
+
     #loop
     setwd(fun_dirs[[service]])
     trips = rbindlist(
@@ -83,23 +83,23 @@ get_trips = function(service
         }
       })
     )
-    
-    
-    
+
+
+
     #now query the data base
     #pull entity
     con = RODBC::odbcConnect(odbc_con)
     sqlz = RODBC::sqlQuery(con, query, as.is = T)
     RODBC::odbcCloseAll()
-    
+
     #merge
     trips = merge(trips,sqlz, by.x = left_key, by.y = right_key, all.x = T)[,industry:=service]
-    
-    
-    
-    
+
+
+
+
   } else if(merge_ent == T & service =='share') {
-    
+
     #pull trips
     setwd(fun_dirs[[service]])
     trips = rbindlist(
@@ -116,22 +116,22 @@ get_trips = function(service
           )
           ]
         }
-        
+
       })
     )
-    
+
     #now query the data base
     #pull entity
     con = RODBC::odbcConnect(odbc_con)
     sqlz = RODBC::sqlQuery(con, query, as.is = T)
     RODBC::odbcCloseAll()
-    
+
     #merge
     trips = merge(trips,sqlz, by.x = left_key, by.y = right_key, all.x = T)[,industry:=service]
-    
-    
+
+
   } else if (merge_ent != T & service =='share') {
-    
+
     #pull trips
     setwd(fun_dirs[[service]])
     trips = rbindlist(
@@ -148,12 +148,12 @@ get_trips = function(service
           )
           ]
         }
-        
+
       })
     )[,industry:=service]
-    
+
   } else if(merge_ent !=T & service !='share') {
-    
+
     setwd(fun_dirs[[service]])
     trips = rbindlist(
       pbapply::pblapply(dates,function(x) {
@@ -177,7 +177,7 @@ get_trips = function(service
         }
       })
     )[,industry:=service]
-    
+
   }
 }
 
@@ -197,20 +197,20 @@ get_trips_days = function(){
                shl = 'I:/COF/COF/_M3trics2/records/shl',
                fhv = 'I:/COF/COF/_M3trics2/records/fhv',
                share = 'I:/COF/COF/_M3trics2/records/fhv_share')
-               
+
                #enter your directory, default is fhv
                setwd(dirs$fhv)
-               
+
                #loop is written out for you
-               my_result = 
+               my_result =
                seq.Date(as.Date(),as.Date(),by = 'days') %>%
                pbapply::pblapply(function(x){
                #enter your directory again in case of outputting cache somewhere else
                setwd(dirs$fhv)
                fst::read.fst(list.files(as.character(x), as.data.table = T)) %>%
                #begin filtering and dplyr functions below
-               
-               
+
+
                }) %>% rbindlist()
                ")
   clipr::write_clip(code)
@@ -226,38 +226,38 @@ get_trips_days = function(){
 #' get_trips_months()
 get_trips_months = function(){
   code = print("
-               
+
                #all the directories of importance
                dirs = list(
                med = 'I:/COF/COF/_M3trics2/records/med',
                shl = 'I:/COF/COF/_M3trics2/records/shl',
                fhv = 'I:/COF/COF/_M3trics2/records/fhv',
                share = 'I:/COF/COF/_M3trics2/records/fhv_share')
-               
+
                #enter your directory, default is fhv
                setwd(dirs$fhv)
-               
+
                #loop is written out for you
-               my_result = 
+               my_result =
                substr(seq.Date(as.Date(), as.Date(), by  ='months'),1,7) %>%
                pblapply(function(the_month){
-               
+
                #enter your directory again in case of outputting cache somewhere else
                setwd()
-               
+
                #extract all files that match the month and pull the data
-               trips_month = 
+               trips_month =
                list.files(pattern = the_month) %>%
                pblapply(function(the_days) {
                read.fst(the_days, as.data.table = T) %>%
                #begin filtering with dplyr or data table below
-               
+
                }) %>% rbindlist()
-               
-               #if you need to do further calculations on the monthly trip data above you can do so 
+
+               #if you need to do further calculations on the monthly trip data above you can do so
                #below before aggregating
                #example: trips_agg = trips %>% group_by(month(pudt)) %>% count
-               
+
                }) %>% rbindlist()
                ")
   clipr::write_clip(code)
@@ -281,43 +281,98 @@ libs = c('data.table','parallel','RODBC', 'lubridate'
                , 'fasttime', 'pbapply', 'dplyr', 'parallel'
                ,'zoo','fst')
                lapply(libs, require, character.only = T)
-               
+
                #all the directories of importance
                dirs = list(
                med = 'I:/COF/COF/_M3trics2/records/med',
                shl = 'I:/COF/COF/_M3trics2/records/shl',
                fhv = 'I:/COF/COF/_M3trics2/records/fhv',
                share = 'I:/COF/COF/_M3trics2/records/fhv_share')
-               
+
                #cluster setup
-               cl = makeCluster() #enter the number of clusters you want to use, run detectCores()-1 for recommended cores 
+               cl = makeCluster() #enter the number of clusters you want to use, run detectCores()-1 for recommended cores
                clusterExport(cl,c('libs','dirs')) #enter the vectors to export, you'll want to add any other vectors
                clusterEvalQ(cl, lapply(libs, require, character.only = T)) #export your libraries to each core
-               
+
                #enter your directory, default is fhv
                setwd(dirs$fhv)
-               
+
                #loop is written out for you
-               my_result = 
+               my_result =
                seq.Date(as.Date(),as.Date(),by = 'days') %>%
                pbapply::pblapply(function(x){
                #enter your directory again in case of outputting cache somewhere else
                setwd(dirs$fhv)
                fst::read.fst(list.files(as.character(x), as.data.table = T)) %>%
                #begin filtering and dplyr functions below
-               
-               
+
+
                },cl = cl #assigns cluster for parallelization
                ) %>% rbindlist()
-               
+
                stopCluster(cl) #kill the cluster
                rm(cl) #remove it
                gc() #clear memory
-               
+
 ")
   clipr::write_clip(code)
   message("Code ready to paste")
 }
 
+#' Spatial Join function to quickly run a spatial join
+#'
+#' This function allows you to quickly run spatial joins
+#' @param data_set the data set name no quotes
+#' @param shp_file the shape file name no quotes
+#' @param projection the projection to transform the shape file in quotes
+#' @param long longitude
+#' @param lat latitude
+#' @keywords spatial
+#' @export
+#' @import data.table rgdal sp
+#' @examples
+#'  spatial_join(bc, zones ,"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" , "longitude" , "latitude")
+spatial_join = function(data_set,shp_file,projection, long, lat) {
 
+  cols = c(long,lat)
 
+  #first I like to subset the long lat points
+  fs_points = data_set[, .SD, .SDcols = cols]
+  names(fs_points) = c("x", "y")
+
+  #code any NAs out
+  fs_points[,x:= as.numeric(as.character(x))][
+    ,y:= as.numeric(as.character(y))] #here I make sure things are numberical
+
+  #this bit is very cutomizable but these are parameters I have set to clean out
+  #crazy points and turn them to 0
+  #rgdal doesnt like NAs when doin a spatial join
+  #so this makes sure they will be coded out and the script will run without errors
+  fs_points[is.na(fs_points$x)] = 0.00000 #here we are saying if something is NA, turn it into the number 0
+  fs_points[is.na(fs_points$y)] = 0.00000
+  fs_points[y > 80 | y < 0
+            ,y:= 0.00000][x > -65 | x < -85
+                          ,x:=0.00000] #same thing is being done in this chain with conditions on range
+
+  #transform projection (this is done to make sure the projections align)
+  pointsSP = SpatialPoints(fs_points,
+                           proj4string=CRS(projection))
+
+  #match projection
+  pointsSP = spTransform(pointsSP, proj4string(shp_file)) #another step towards matching the projection
+
+  #test equivelency, should read TRUE (debug check)
+  print(proj4string(shp_file) == proj4string(pointsSP)) #this will be True to show they are equivalent
+
+  # Use 'over' to get _indices_ of the Polygons object  containing each point
+  indices = setDT(over(pointsSP, shp_file)) #this is the actual spatial join; note I use the shape file
+  names(indices) = tolower(names(indices)) #I lower the columns for easier use, you can omit
+
+  head(indices) #here you can print and check what the new file indices looks like (this will be a whole bunch of NAS, that measn they are outside the polygons)
+
+  #now we take the new spatially joined file and column bind it back to our original file
+  final = cbind(data_set, indices)
+  rm(indices,pointsSP,fs_points)
+  gc()
+  final
+}
