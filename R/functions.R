@@ -350,9 +350,12 @@ spatial_join = function(data_set,shp_file,projection, long, lat) {
   #so this makes sure they will be coded out and the script will run without errors
   fs_points[is.na(fs_points$x)] = 0.00000 #here we are saying if something is NA, turn it into the number 0
   fs_points[is.na(fs_points$y)] = 0.00000
-  #fs_points[y > 80 | y < 0
-  #          ,y:= 0.00000][x > -65 | x < -85
-  #                        ,x:=0.00000] #same thing is being done in this chain with conditions on range
+
+  #filter out crazy points
+  fs_points[x > 0, x:=0.00000]
+  fs_points[x < -99, x:=0.00000]
+  fs_points[y < 0, y:=0.00000]
+  fs_points[y > 60, y:=0.00000]
 
   #transform projection (this is done to make sure the projections align)
   pointsSP = SpatialPoints(fs_points,
