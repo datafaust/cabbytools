@@ -334,6 +334,7 @@ libs = c('data.table','parallel','RODBC', 'lubridate'
 #'  spatial_join(bc, zones ,"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" , "longitude" , "latitude")
 spatial_join = function(data_set,shp_file,projection, long, lat) {
 
+
   cols = c(long,lat)
 
   #first I like to subset the long lat points
